@@ -27,12 +27,13 @@
   .wrap{max-width:1120px;margin:0 auto;padding:18px}
   header{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
   .brand{display:flex;align-items:center;gap:10px;min-width:0}
-  .brand-logo{display:inline-flex;align-items:center;justify-content:center;background:#0f172a;border:1px solid #0f172a;border-radius:8px;padding:5px 9px;flex-shrink:0}
-  .brand-logo img{display:block;height:24px;width:auto;max-width:96px;object-fit:contain}
+  .brand-logo{display:inline-flex;align-items:center;justify-content:center;background:#0f172a;border:1px solid #0f172a;border-radius:8px;padding:6px 11px;flex-shrink:0;text-decoration:none}
+  .brand-logo:hover{opacity:.85}
+  .brand-logo img{display:block;height:32px;width:auto;max-width:128px;object-fit:contain}
   body.dark .brand-logo{background:#0b1220;border-color:var(--border)}
   header h1{margin:0;font-size:1.45rem;color:var(--primary);line-height:1.25}
+  .badge-inline{font-size:.72em;color:inherit;font-weight:inherit;font-family:inherit;white-space:nowrap}
   header .sub{color:var(--muted);font-size:.88rem}
-  .badge{background:#e8f0fe;color:var(--primary);padding:4px 10px;border-radius:999px;font-size:.72rem;font-weight:600}
   .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
   @media (max-width:880px){.grid{grid-template-columns:minmax(0,1fr)}}
   .card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 2px 8px rgba(0,0,0,.04);min-width:0}
@@ -113,10 +114,9 @@
     .wrap{padding:12px}
     header{gap:8px}
     .brand{width:100%;align-items:flex-start}
-    .brand-logo{padding:4px 7px;margin-top:1px}
-    .brand-logo img{height:20px;max-width:82px}
+    .brand-logo{padding:5px 9px;margin-top:1px}
+    .brand-logo img{height:26px;max-width:104px}
     header h1{font-size:1.15rem}
-    .badge{font-size:.68rem}
     header .sub{width:100%;font-size:.8rem}
     #btnTema{width:100%;justify-content:center;margin-left:0}
     .actions .btn,.src-row .btn{flex:1 1 auto;justify-content:center}
@@ -144,10 +144,9 @@
 <div class="wrap">
   <header>
     <div class="brand">
-      <span class="brand-logo"><img src="logo.png" alt="Logotipo"></span>
-      <h1>Simulador de Financiamento Imobiliário</h1>
+      <a class="brand-logo" href="https://www.projetei.com" target="_blank" rel="noopener noreferrer" aria-label="Projetei — abrir site"><img src="logo.png" alt="Logotipo Projetei"></a>
+      <h1>Simulador de Financiamento Imobiliário <span class="badge-inline">(PRICE &amp; SAC)</span></h1>
     </div>
-    <span class="badge">PRICE &amp; SAC</span>
     <span class="sub">Estimativa de custos — valores sujeitos à análise de crédito.</span>
     <button class="btn btn-ghost btn-sm" id="btnTema" style="margin-left:auto">🌙 Tema escuro</button>
   </header>
@@ -515,6 +514,7 @@ function calcular(){
     html += `<div class="box" data-tip="Parcela máxima permitida pelo comprometimento de renda (${fmtN(d.comprometimento*100,0)}% da renda bruta)"><div class="lbl">Parcela máxima (${fmtN(d.comprometimento*100,0)}% da renda) <span class="help">?</span></div><div class="val green">${fmt(limiteParcela)}</div></div>`;
     html += `<div class="box" data-tip="Valor máximo de imóvel financiável pelo método PRICE, mantendo a parcela dentro do limite de renda (considera taxa, prazo e entrada)"><div class="lbl">Valor máx. de imóvel (PRICE) <span class="help">?</span></div><div class="val">${fmt(imovelMaxPrice)}</div></div>`;
     html += `<div class="box" data-tip="Valor máximo de imóvel financiável pelo método SAC, mantendo a parcela dentro do limite de renda (considera taxa, prazo e entrada)"><div class="lbl">Valor máx. de imóvel (SAC) <span class="help">?</span></div><div class="val">${fmt(imovelMaxSAC)}</div></div>`;
+    html += `<div class="kpi-break" aria-hidden="true"></div>`;
   }
   html += `<div class="box"><div class="lbl">PRICE — 1ª parcela</div><div class="val">${fmt(pricePrimeira)}</div></div>`;
   html += `<div class="box"><div class="lbl">PRICE — última</div><div class="val">${fmt(priceUltima)}</div></div>`;
