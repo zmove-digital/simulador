@@ -60,9 +60,11 @@
   .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .kpi{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0}
   @media (max-width:640px){.kpi{grid-template-columns:repeat(2,minmax(0,1fr))}}
+  .kpi-break{display:none}
+  @media (max-width:640px){.kpi-break{display:block;grid-column:1/-1;height:16px}}
   .kpi .box{background:#f9fafb;border:1px solid var(--border);border-radius:10px;padding:12px;cursor:pointer;position:relative;min-width:0}
   .kpi .box .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:4px}
-  .kpi .box .help{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--primary);color:#fff;font-size:.65rem;font-weight:700;cursor:help;flex-shrink:0}
+  .help{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:50%;background:var(--primary);color:#fff;font-size:.65rem;font-weight:700;cursor:help;flex-shrink:0;margin-left:4px}
   .tooltip{position:fixed;z-index:9999;max-width:260px;padding:10px 12px;background:#1e293b;color:#f1f5f9;font-size:.78rem;line-height:1.4;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .15s ease,transform .15s ease}
   .tooltip.show{opacity:1;transform:translateY(0)}
   body.dark .tooltip{background:#0f172a;border:1px solid var(--border)}
@@ -82,6 +84,8 @@
   tr:nth-child(even) td{background:#fafafa}
   tfoot td{font-weight:700;background:#eef2ff}
   .note{font-size:.76rem;color:var(--muted);margin-top:8px}
+  .col-notas{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;line-height:1.6}
+  .col-notas strong{color:var(--fg)}
   .legenda{margin-top:12px;padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--bg)}
   .legenda-titulo{font-size:.8rem;font-weight:700;color:var(--fg);margin-bottom:8px}
   .legenda-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px}
@@ -272,10 +276,12 @@
       </div>
 
       <div id="tab-price" class="tabcontent">
-        <div class="table-wrap"><table id="tblPrice"><thead><tr><th>Mês</th><th>Parcela</th><th>Juros</th><th>Amortização</th><th>Saldo devedor</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <div class="table-wrap"><table id="tblPrice"><thead><tr><th>Mês</th><th data-tip="Parcela: valor total pago no mês (amortização + juros + seguros/tarifas, quando informados).">Parcela<span class="help">?</span></th><th data-tip="Juros: custo do dinheiro emprestado, calculado sobre o saldo devedor de cada mês.">Juros<span class="help">?</span></th><th data-tip="Amortização: parte da parcela que quita o capital e reduz o saldo devedor.">Amortização<span class="help">?</span></th><th data-tip="Saldo devedor: valor ainda em dívida após o pagamento da parcela do mês.">Saldo devedor<span class="help">?</span></th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <div class="note col-notas"><strong>Colunas:</strong> <strong>Parcela</strong> = valor pago no mês (juros + amortização + seguros); <strong>Juros</strong> = custo do dinheiro emprestado sobre o saldo devedor; <strong>Amortização</strong> = parte que quita o capital; <strong>Saldo devedor</strong> = dívida restante após a parcela.</div>
       </div>
       <div id="tab-sac" class="tabcontent hidden">
-        <div class="table-wrap"><table id="tblSAC"><thead><tr><th>Mês</th><th>Parcela</th><th>Juros</th><th>Amortização</th><th>Saldo devedor</th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <div class="table-wrap"><table id="tblSAC"><thead><tr><th>Mês</th><th data-tip="Parcela: valor total pago no mês (amortização + juros + seguros/tarifas, quando informados).">Parcela<span class="help">?</span></th><th data-tip="Juros: custo do dinheiro emprestado, calculado sobre o saldo devedor de cada mês.">Juros<span class="help">?</span></th><th data-tip="Amortização: parte da parcela que quita o capital e reduz o saldo devedor.">Amortização<span class="help">?</span></th><th data-tip="Saldo devedor: valor ainda em dívida após o pagamento da parcela do mês.">Saldo devedor<span class="help">?</span></th></tr></thead><tbody></tbody><tfoot></tfoot></table></div>
+        <div class="note col-notas"><strong>Colunas:</strong> <strong>Parcela</strong> = valor pago no mês (juros + amortização + seguros); <strong>Juros</strong> = custo do dinheiro emprestado sobre o saldo devedor; <strong>Amortização</strong> = parte que quita o capital; <strong>Saldo devedor</strong> = dívida restante após a parcela.</div>
       </div>
       <div id="tab-grafico" class="tabcontent hidden">
         <canvas id="chart" width="900" height="250"></canvas>
@@ -329,9 +335,15 @@ function formatarMoeda(num){
 }
 function formatarPercentual(num){
   if(!isFinite(num)) num = 0;
-  // até 6 casas para manter a precisão em centavos, sem zeros à direita
-  let s = num.toFixed(6).replace(/0+$/,'').replace(/\.$/,'');
+  // campo de porcentagem: no máximo 2 casas após a vírgula, sem zeros à direita
+  let s = num.toFixed(2).replace(/0+$/,'').replace(/\.$/,'');
   return s.replace('.', ',');
+}
+function normalizarEntradaPercentual(){
+  const el = $('entrada');
+  if($('entradaTipo').value!=='pct' || el.value.trim()==='') return;
+  const v = parseFloat(String(el.value).replace(',','.'));
+  if(isFinite(v)) el.value = formatarPercentual(v);
 }
 function aplicarMascaraMoeda(input){
   // formata no blur: parseia e formata com separador de milhares
@@ -343,7 +355,7 @@ const fmt = v => (isFinite(v)? v : 0).toLocaleString('pt-BR',{style:'currency',c
 const fmtN = (v,d=2) => (isFinite(v)? v : 0).toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});
 
 let priceRows=[], sacRows=[], lastResumoText='';
-let autoAjustado=false, valorImovelOriginal=null, entradaOriginal=null, entradaTipoOriginal=null, autoAjusteDesabilitado=false, entradaInicial=null;
+let autoAjustado=false, valorImovelOriginal=null, entradaOriginal=null, entradaTipoOriginal=null, autoAjusteDesabilitado=false, entradaInicial=null, entradaPrecisaPct=null;
 
 function getInputs(){
   const valorImovel = parseMoeda($('valorImovel').value);
@@ -352,6 +364,8 @@ function getInputs(){
   let entradaRaw;
   if(entradaTipo==='pct'){
     entradaRaw = parseFloat(String(entradaRawStr).replace(',','.')) || 0;
+    // ajuste automático: usa a precisão interna mesmo com 2 casas exibidas no campo
+    if(entradaPrecisaPct!==null) entradaRaw = entradaPrecisaPct;
   } else {
     entradaRaw = parseMoeda(entradaRawStr);
   }
@@ -452,8 +466,9 @@ function calcular(){
     if(entradaTipoOriginal===null) entradaTipoOriginal = d.entradaTipo;
     autoAjustado = true;
     if(entradaNec > d.entrada && entradaNec > 0 && entradaNec < d.valorImovel){
-      // aumentar a entrada mantendo o campo em percentual (alta precisão)
+      // aumentar a entrada mantendo o campo em percentual (2 casas) e a precisão interna
       const pctNec = d.valorImovel>0 ? (entradaNec/d.valorImovel)*100 : d.entradaRaw;
+      entradaPrecisaPct = pctNec;
       $('entradaTipo').value = 'pct';
       $('entrada').value = formatarPercentual(pctNec);
       $('entradaSuf').textContent = '%';
@@ -504,6 +519,7 @@ function calcular(){
   html += `<div class="box"><div class="lbl">PRICE — 1ª parcela</div><div class="val">${fmt(pricePrimeira)}</div></div>`;
   html += `<div class="box"><div class="lbl">PRICE — última</div><div class="val">${fmt(priceUltima)}</div></div>`;
   html += `<div class="box"><div class="lbl">PRICE — total pago</div><div class="val warn">${fmt(pr.total + d.tarifa)}</div></div>`;
+  html += `<div class="kpi-break" aria-hidden="true"></div>`;
   html += `<div class="box"><div class="lbl">SAC — 1ª parcela</div><div class="val">${fmt(sacPrimeira)}</div></div>`;
   html += `<div class="box"><div class="lbl">SAC — última</div><div class="val">${fmt(sacUltima)}</div></div>`;
   html += `<div class="box"><div class="lbl">SAC — total pago</div><div class="val warn">${fmt(sc.total + d.tarifa)}</div></div>`;
@@ -712,6 +728,7 @@ function aplicarMascaraNoEnter(){
   if($('entradaTipo').value==='val' && entrada.value.trim()!==''){
     aplicarMascaraMoeda(entrada);
   }
+  normalizarEntradaPercentual();
 }
 // Direto nos campos + delegate no documento (cobre campos dinâmicos e foco fora deles)
 document.querySelectorAll('input, select, textarea').forEach(el=>{
@@ -728,19 +745,21 @@ mascararInput($('tarifa'));
 // Entrada: formatação condicional
 $('entrada').addEventListener('blur', ()=>{
   if($('entradaTipo').value==='val' && $('entrada').value.trim()!=='') aplicarMascaraMoeda($('entrada'));
+  else normalizarEntradaPercentual();
 });
 $('entradaTipo').addEventListener('change', e=>{
   $('entradaSuf').textContent = e.target.value==='pct' ? '%' : 'R$';
   if(e.target.value==='pct'){
     const v = parseMoeda($('entrada').value);
-    $('entrada').value = v;
+    $('entrada').value = formatarPercentual(v);
+    entradaPrecisaPct = null;
   } else {
     aplicarMascaraMoeda($('entrada'));
   }
 });
 
 // Resetar auto-ajuste quando o usuário altera manualmente
-function resetAutoAjuste(){ autoAjustado=false; valorImovelOriginal=null; entradaOriginal=null; entradaTipoOriginal=null; autoAjusteDesabilitado=false; }
+function resetAutoAjuste(){ autoAjustado=false; valorImovelOriginal=null; entradaOriginal=null; entradaTipoOriginal=null; autoAjusteDesabilitado=false; entradaPrecisaPct=null; }
 $('valorImovel').addEventListener('input', resetAutoAjuste);
 $('renda').addEventListener('input', ()=>{
   // restaurar valor do imóvel ao original se foi auto-ajustado
@@ -755,7 +774,7 @@ $('renda').addEventListener('input', ()=>{
     // se a entrada mínima é exatamente o % inicial, usar % para melhor UX
     if(Math.abs(entradaMinVal - (vi * entradaInicial / 100)) < 0.01){
       $('entradaTipo').value = 'pct';
-      $('entrada').value = entradaInicial;
+      $('entrada').value = formatarPercentual(entradaInicial);
       $('entradaSuf').textContent = '%';
     } else {
       $('entradaTipo').value = 'val';
@@ -795,7 +814,7 @@ document.addEventListener('click', e=>{
       if(valorImovelOriginal!==null) $('valorImovel').value = formatarMoeda(valorImovelOriginal);
       if(entradaOriginal!==null){
         if(entradaTipoOriginal==='pct'){
-          $('entrada').value = entradaOriginal;
+          $('entrada').value = formatarPercentual(entradaOriginal);
         } else {
           $('entrada').value = formatarMoeda(entradaOriginal);
         }
@@ -803,6 +822,7 @@ document.addEventListener('click', e=>{
       if(entradaTipoOriginal!==null){ $('entradaTipo').value = entradaTipoOriginal; $('entradaSuf').textContent = entradaTipoOriginal==='pct' ? '%' : 'R$'; }
       autoAjustado = false;
       autoAjusteDesabilitado = true;
+      entradaPrecisaPct = null;
       valorImovelOriginal = null;
       entradaOriginal = null;
       entradaTipoOriginal = null;
@@ -841,7 +861,7 @@ try{
     $('valorImovel').value = formatarMoeda(last.valorImovel ?? 500000);
     $('entradaTipo').value = last.entradaTipo ?? 'pct';
     if((last.entradaTipo ?? 'pct')==='pct'){
-      $('entrada').value = last.entrada ?? 20;
+      $('entrada').value = formatarPercentual(last.entrada ?? 20);
     } else {
       $('entrada').value = formatarMoeda(last.entrada ?? 100000);
     }
@@ -875,7 +895,7 @@ try{
   }
   function hide(){ tip.classList.remove('show'); }
   document.addEventListener('click', e=>{
-    const box = e.target.closest('.kpi .box[data-tip]');
+    const box = e.target.closest('[data-tip]');
     if(box){
       e.stopPropagation();
       clearTimeout(hideTimer);
@@ -886,7 +906,7 @@ try{
     }
   });
   document.addEventListener('mouseover', e=>{
-    const box = e.target.closest('.kpi .box[data-tip]');
+    const box = e.target.closest('[data-tip]');
     if(box && e.target.classList.contains('help')){
       show(box.getAttribute('data-tip'), e.clientX, e.clientY);
     }
